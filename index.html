@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Évasion — la mer pour tous</title>
+<meta name="description" content="Une plage paisible dans ton navigateur : la mer, les oiseaux, les dauphins, le bruit des vagues.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--glass:rgba(255,255,255,.13);--line:rgba(255,255,255,.28);--txt:#fff}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#1d2a44;color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+  canvas{display:block;cursor:grab}
+  canvas:active{cursor:grabbing}
+  body.idle canvas{cursor:none}
+  .glass{background:var(--glass);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.18)}
+  #intro{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 60%,rgba(10,15,30,.05),rgba(10,15,30,.55));transition:opacity 1.6s ease}
+  #intro.gone{opacity:0;pointer-events:none}
+  #intro h1{font-family:"Cormorant Garamond",serif;font-weight:500;font-size:clamp(56px,11vw,120px);margin:0;letter-spacing:2px;text-shadow:0 4px 30px rgba(0,0,0,.25)}
+  #intro p{max-width:520px;font-size:clamp(15px,2.2vw,18px);line-height:1.6;opacity:.92;margin:10px 0;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+  #intro .em{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:clamp(20px,3vw,26px);opacity:.95}
+  #intro .row{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;justify-content:center}
+  .btn{font:600 16px Inter,sans-serif;color:#13233f;background:rgba(255,255,255,.92);border:0;border-radius:999px;padding:15px 30px;cursor:pointer;transition:transform .2s,background .2s;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+  .btn:hover{transform:translateY(-2px);background:#fff}
+  .btn.ghost{color:#fff;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px)}
+  #intro small{margin-top:22px;opacity:.75;font-size:13px}
+  #dock{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:7px;border-radius:999px;transition:opacity .8s,transform .8s;max-width:calc(100vw - 24px)}
+  #dock.hide{opacity:0;transform:translate(-50%,16px);pointer-events:none}
+  #dock[hidden]{display:none}
+  #dock button{display:flex;align-items:center;gap:7px;font:500 13.5px Inter,sans-serif;color:#fff;background:transparent;border:0;border-radius:999px;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:background .25s}
+  #dock button:hover{background:rgba(255,255,255,.14)}
+  #dock button.on{background:rgba(255,255,255,.88);color:#13233f}
+  #dock .ic{font-size:16px;line-height:1}
+  #dock .sep{width:1px;height:24px;background:var(--line);margin:0 4px}
+  #panel{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);border-radius:20px;padding:18px 20px;width:min(340px,calc(100vw - 32px));transition:opacity .4s}
+  #panel[hidden]{display:none}
+  #panel h3{margin:0 0 12px;font:600 13px Inter;letter-spacing:1.5px;text-transform:uppercase;opacity:.8}
+  #panel label{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14px;margin:10px 0}
+  #panel input{width:160px;accent-color:#fff}
+  #breath{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;height:220px;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity 1.2s}
+  #breath[hidden]{display:none}
+  #breath .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:radial-gradient(circle,rgba(255,255,255,.14),rgba(255,255,255,0) 70%);will-change:transform}
+  #breath span{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:30px;text-shadow:0 2px 14px rgba(0,0,0,.4)}
+  #tip{position:fixed;left:50%;top:22px;transform:translateX(-50%);padding:10px 18px;border-radius:999px;font-size:13.5px;transition:opacity 1s;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}
+  #tip.off{opacity:0}
+  #stickZone{position:fixed;left:0;bottom:0;width:45vw;height:55vh;display:none;touch-action:none}
+  #stickZone.on{display:block}
+  #stick{position:absolute;left:40px;bottom:120px;width:110px;height:110px;border-radius:50%;opacity:.7}
+  #knob{position:absolute;left:31px;top:31px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.75)}
+  #act,#panel{background:rgba(16,24,42,.62)}
+  @media (max-width:1180px){#breathBtn .lbl,#soundBtn .lbl,#fsBtn .lbl,#modeBtn .lbl{display:none}}
+  #act{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);border-radius:22px;padding:18px 18px 14px;width:min(460px,calc(100vw - 24px));max-height:calc(100vh - 120px);overflow:auto}
+  #act[hidden]{display:none}
+  #act h3{margin:2px 2px 10px;font:600 12.5px Inter;letter-spacing:1.5px;text-transform:uppercase;opacity:.8}
+  #act .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  #act .grid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;font:500 13px Inter;cursor:pointer;transition:background .2s,transform .2s;position:relative}
+  #act .grid button:hover{background:rgba(255,255,255,.2);transform:translateY(-1px)}
+  #act .grid button.on{background:rgba(255,255,255,.88);color:#13233f}
+  #act .grid .em{font-size:24px;line-height:1}
+  #act .grid kbd{position:absolute;top:6px;right:8px;font:600 10px Inter;opacity:.55}
+  #carnet .shells{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-bottom:10px}
+  #carnet .sh{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);font-size:12.5px;line-height:1.3}
+  #carnet .sh b{display:block;font-weight:600}
+  #carnet .sh.no{opacity:.45}
+  #carnet .sh .r{font-size:11px;opacity:.75}
+  #carnet .stats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;opacity:.9;margin:4px 2px}
+  #carnet .hint{font-size:12px;opacity:.7;margin:10px 2px 2px}
+  #toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,12px);padding:12px 20px;border-radius:18px;font-size:14.5px;line-height:1.4;text-align:center;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;max-width:calc(100vw - 32px)}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #toast .rar{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.25);margin-left:4px;vertical-align:middle}
+  #letter{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,12,24,.45);backdrop-filter:blur(3px);padding:20px;z-index:5}
+  #letter[hidden]{display:none}
+  #letter .paper{max-width:440px;width:100%;background:linear-gradient(160deg,#fbf4e2,#efe2c4);color:#3b2f22;border-radius:6px;padding:34px 34px 26px;box-shadow:0 20px 60px rgba(0,0,0,.45);transform:rotate(-1.2deg);font-family:Caveat,cursive;font-size:clamp(24px,4.6vw,30px);line-height:1.35;animation:unroll .7s ease}
+  #letter .sig{display:block;text-align:right;margin-top:14px;font-size:.85em;opacity:.8}
+  #letter button{margin-top:18px;font:600 15px Inter;background:#3b2f22;color:#fbf4e2;border:0;border-radius:99px;padding:10px 22px;cursor:pointer}
+  @keyframes unroll{from{opacity:0;transform:rotate(-1.2deg) scaleY(.2)}to{opacity:1;transform:rotate(-1.2deg) scaleY(1)}}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .6s}
+  #flash.on{opacity:.85;transition:none}
+  body.writing canvas{cursor:crosshair}
+  @media (max-width:720px){#act .grid{grid-template-columns:repeat(3,1fr)}#act .grid span{font-size:11.5px}#dock .lbl{display:none}#dock button{padding:10px 11px}#dock .sep{margin:0 1px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="intro">
+  <h1>Évasion</h1>
+  <p class="em">Une plage rien que pour toi.</p>
+  <p>Pose-toi, respire, écoute la mer. Les mouettes passent, les dauphins jouent au large, le sable est chaud.</p>
+  <div class="row">
+    <button class="btn" id="goCalm">Contempler</button>
+    <button class="btn ghost" id="goWalk">Me balader</button>
+  </div>
+  <small>🎧 Avec un casque, c'est encore plus beau</small>
+  <small style="margin-top:6px;font-size:11px;opacity:.5">Voix : Piper (SIWIS &amp; MLS, CC BY 4.0)</small>
+</div>
+
+<div id="dock" class="glass" hidden>
+  <button data-m="matin"><span class="ic">🌅</span><span class="lbl">Matin</span></button>
+  <button data-m="jour"><span class="ic">☀️</span><span class="lbl">Journée</span></button>
+  <button data-m="coucher"><span class="ic">🌇</span><span class="lbl">Coucher</span></button>
+  <button data-m="nuit"><span class="ic">🌙</span><span class="lbl">Nuit</span></button>
+  <div class="sep"></div>
+  <button id="modeBtn"><span class="ic">🚶</span><span class="lbl">Balade</span></button>
+  <button id="actBtn"><span class="ic">🎒</span><span class="lbl">Activités</span></button>
+  <button id="breathBtn"><span class="ic">🫧</span><span class="lbl">Respirer</span></button>
+  <button id="soundBtn"><span class="ic">🔊</span><span class="lbl">Sons</span></button>
+  <button id="fsBtn"><span class="ic">⛶</span><span class="lbl">Plein écran</span></button>
+</div>
+<div id="panel" class="glass" hidden>
+  <h3>Ambiance sonore</h3>
+  <label>🌊 Vagues <input type="range" min="0" max="1" step="0.01" data-bus="vagues" value="0.9"></label>
+  <label>🍃 Vent <input type="range" min="0" max="1" step="0.01" data-bus="vent" value="0.45"></label>
+  <label>🐦 Animaux <input type="range" min="0" max="1" step="0.01" data-bus="nature" value="0.8"></label>
+  <label>🎸 Paillote <input type="range" min="0" max="1" step="0.01" data-bus="paillote" value="0.7"></label>
+  <label>🎶 Musique douce <input type="range" min="0" max="1" step="0.01" data-bus="musique" value="0"></label>
+</div>
+<div id="act" class="glass" hidden>
+  <h3>🎒 Activités</h3>
+  <div class="grid">
+    <button data-a="skip"><span class="em">🪨</span><span>Ricochets</span><kbd>R</kbd></button>
+    <button data-a="write"><span class="em">✍️</span><span>Écrire</span><kbd>E</kbd></button>
+    <button data-a="photo"><span class="em">📸</span><span>Carte postale</span><kbd>P</kbd></button>
+    <button data-a="swim"><span class="em">🏊</span><span>Nager</span></button>
+    <button data-a="bar"><span class="em">🍹</span><span>La paillote</span></button>
+    <button data-a="fire"><span class="em">🔥</span><span>Feu de camp</span></button>
+  </div>
+  <h3>📔 Carnet de plage</h3>
+  <div id="carnet"></div>
+</div>
+<div id="toast" class="glass"></div>
+<div id="letter" hidden><div class="paper"><div id="letterTxt"></div><span class="sig" id="letterSig"></span><button id="letterOk">Garder ce mot 💛</button></div></div>
+<div id="flash"></div>
+<div id="breath" hidden><div class="ring"></div><span>Inspire</span></div>
+<div id="tip" class="glass off"></div>
+<div id="stickZone"><div id="stick" class="glass"><div id="knob"></div></div></div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
