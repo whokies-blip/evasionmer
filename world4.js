@@ -165,3 +165,5 @@ hooks.push((dt,time)=>{
 });
 // safety: one faulty animation frame must never freeze the whole scene
 hooks.forEach((h,i)=>{if(!h.__safe){const f=(...a)=>{try{h(...a);}catch(e){}};f.__safe=true;hooks[i]=f;}});
+// voices removed: speech bubbles only, no audio speech at all
+if('speechSynthesis' in window){try{speechSynthesis.cancel();speechSynthesis.speak=()=>{};}catch(e){}}
