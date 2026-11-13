@@ -167,3 +167,25 @@ hooks.push((dt,time)=>{
 hooks.forEach((h,i)=>{if(!h.__safe){const f=(...a)=>{try{h(...a);}catch(e){}};f.__safe=true;hooks[i]=f;}});
 // voices removed: speech bubbles only, no audio speech at all
 if('speechSynthesis' in window){try{speechSynthesis.cancel();speechSynthesis.speak=()=>{};}catch(e){}}
+
+// =====================================================================
+// Only the waiter stays: every other person (and what only made sense
+// with them: their dog, the kayak, the volley game, the kids' ball) is removed.
+// =====================================================================
+(function removePeople(){
+  const isWaiter=g=>g.children.some(c=>c.isMesh&&c.geometry.type==='BoxGeometry'&&Math.abs(c.position.y-1.62)<0.01&&c.position.z>0.1);
+  const hideAll=o=>o.traverse(m=>{if(m.isMesh||m.isSprite||m.isLine||m.isPoints){m.visible=false;if(m.material)[].concat(m.material).forEach(x=>x.visible=false);}});
+  const people=[];scene.traverse(o=>{if(o.isGroup&&o.children.some(c=>c.isMesh&&c.geometry.type==='SphereGeometry'&&Math.abs(c.geometry.parameters.radius-0.125)<1e-4))people.push(o);});
+  for(const g of people)if(!isWaiter(g))hideAll(g);
+  for(const o of scene.children){
+    if(o.isGroup&&o.children.some(c=>c.isMesh&&c.geometry.type==='BoxGeometry'&&Math.abs((c.geometry.parameters.width||0)-0.26)<1e-3&&Math.abs((c.geometry.parameters.depth||0)-0.62)<1e-3))hideAll(o);       // dog
+    if(o.isGroup&&o.children.some(c=>c.isMesh&&Math.abs(c.scale.z-5)<1e-3))hideAll(o);                                                                                                                         // kayak
+    if(o.isGroup&&o.children.some(c=>c.isMesh&&c.geometry.type==='PlaneGeometry'&&Math.abs((c.geometry.parameters.width||0)-9.2)<1e-3))hideAll(o);                                                             // volley net
+    if(o.isMesh&&o.geometry.type==='SphereGeometry'&&[0.11,0.2].some(r=>Math.abs(o.geometry.parameters.radius-r)<1e-4))hideAll(o);                                                                             // balls
+    if(o.isMesh&&o.geometry.type==='CircleGeometry'&&Math.abs(o.geometry.parameters.radius-0.18)<1e-4)hideAll(o);                                                                                              // ball shadow
+  }
+  // the speech bubbles of the removed people (the first bubble element belongs to them)
+  const b=document.querySelectorAll('.bubble');if(b[0])b[0].style.display='none';
+  // remove the volley activity button
+  document.querySelectorAll('#act .grid button').forEach(btn=>{if(btn.textContent.includes('volley'))btn.remove();});
+})();
