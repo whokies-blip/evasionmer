@@ -11,3 +11,4 @@ Une plage paisible en 3D dans le navigateur (Three.js, sons 100 % synthétisés)
 - Textures feuilles, écorce, enduit, tuiles : [ambientCG](https://ambientcg.com) (CC0) — LeafSet013, Bark012, Plaster001, RoofingTiles012A.
 - `world7.js` : activité « Balade en bateau » (touche N) — tour de l'île et du phare à bord d'un pointu, avec houle, moteur et clapotis.
 - `world8.js` : jeu « Toboggan » (touche G) — tour de 12 m, spirale puis longue descente qui projette dans la mer, avec eau qui ruisselle et grand plouf.
+- `world9.js` : jeu « Parachute tracté » (touche J) — un hors-bord t'emmène à ~45 m au-dessus de la baie sous une voile multicolore.
