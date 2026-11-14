@@ -9,3 +9,4 @@ Une plage paisible en 3D dans le navigateur (Three.js, sons 100 % synthétisés)
 - Textures et panorama HDR : [Poly Haven](https://polyhaven.com) (CC0) — coast_sand_01, aerial_rocks_02, fish_hoek_beach.
 - `world6.js` : palmes reconstruites à partir de photos de folioles, écorce réelle sur les troncs, enduit à la chaux et tuiles en terre cuite sur le village.
 - Textures feuilles, écorce, enduit, tuiles : [ambientCG](https://ambientcg.com) (CC0) — LeafSet013, Bark012, Plaster001, RoofingTiles012A.
+- `world7.js` : activité « Balade en bateau » (touche N) — tour de l'île et du phare à bord d'un pointu, avec houle, moteur et clapotis.
