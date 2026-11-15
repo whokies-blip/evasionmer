@@ -6,9 +6,11 @@ Une plage paisible en 3D dans le navigateur (Three.js, sons 100 % synthétisés)
 - Lancer en local : `python3 -m http.server` puis ouvrir http://localhost:8000
 - `main.js` charge `app.js` (le monde), `extras.js` (activités), `world2.js` (village, personnes, bateaux), `world3.js` (volley, animaux, serveur), `world4.js` (personnages détaillés, sons de l'eau, voix désactivées).
 - `world5.js` : textures photo du sable et des rochers, éclairage par photo panoramique de plage, rendu cinéma (halo, anticrénelage, vignette).
-- Textures et panorama HDR : [Poly Haven](https://polyhaven.com) (CC0) — coast_sand_01, aerial_rocks_02, fish_hoek_beach.
+- Textures et panorama HDR : [Poly Haven](https://polyhaven.com) (CC0) — coast_sand_01, aerial_rocks_02, fish_hoek_beach, white_plaster_rough_02, clay_roof_tiles_02, blue_painted_planks, rustic_stone_wall (maisons).
 - `world6.js` : palmes reconstruites à partir de photos de folioles, écorce réelle sur les troncs, enduit à la chaux et tuiles en terre cuite sur le village.
 - Textures feuilles, écorce, enduit, tuiles : [ambientCG](https://ambientcg.com) (CC0) — LeafSet013, Bark012, Plaster001, RoofingTiles012A.
 - `world7.js` : activité « Balade en bateau » (touche N) — tour de l'île et du phare à bord d'un pointu, avec houle, moteur et clapotis.
-- `world8.js` : jeu « Toboggan » (touche G) — tour de 12 m, spirale puis longue descente qui projette dans la mer, avec eau qui ruisselle et grand plouf.
+- `world8.js` : jeu « Toboggan » (touche G) — tour de 35 m, 3 tours et demi de spirale puis longue descente qui projette dans la mer, avec eau qui ruisselle et grand plouf.
 - `world9.js` : jeu « Parachute tracté » (touche J) — un hors-bord t'emmène à ~45 m au-dessus de la baie sous une voile multicolore.
+- `world10.js` : village méditerranéen réaliste (enduit à la chaux, tuiles, volets en bois, pierre, balcons, bougainvilliers, cyprès) et nouveau phare.
+- `world11.js` : baleines à bosse au large — souffles, dos qui affleure, plongées queue en l'air, sauts, chant lointain.

@@ -10,14 +10,15 @@ function toast(html,ms=4200){const t=$('toast');t.innerHTML=html;t.classList.add
 const std=(c,r=0.5,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:r,...o});
 
 // ---------- placement ----------
-const TX=38,TZ=SHORE(38)+14,TY=H(TX,TZ),TOP=TY+12;
-// ---------- slide path: 1.5 spiral turns around the tower, then a long run out over the sea ----------
-const pts=[];
-for(let i=0;i<=24;i++){const u=i/24,a=-Math.PI/2+u*Math.PI*3,r=4.2;pts.push(new THREE.Vector3(TX+Math.cos(a)*r,TOP-0.4-u*5.6,TZ+Math.sin(a)*r));}
+const TX=38,TZ=SHORE(38)+14,TY=H(TX,TZ),HT=35,TOP=TY+HT,SR=5.2,TURNS=3.5;
+// ---------- slide path: 3.5 spiral turns around a 35 m tower, then a long run out over the sea ----------
+const pts=[];const A1=Math.PI,A0=A1-TURNS*Math.PI*2,SPN0=Math.round(TURNS*14);
+pts.push(new THREE.Vector3(TX+Math.cos(A0-1.0)*1.9,TOP-0.1,TZ+Math.sin(A0-1.0)*1.9),new THREE.Vector3(TX+Math.cos(A0-0.5)*3.5,TOP-0.35,TZ+Math.sin(A0-0.5)*3.5));
+for(let i=0;i<=SPN0;i++){const u=i/SPN0,a=A0+u*(A1-A0),r=SR;pts.push(new THREE.Vector3(TX+Math.cos(a)*r,TOP-0.7-u*(HT-6.7),TZ+Math.sin(a)*r));}
 const sp=pts[pts.length-1];
-pts.push(new THREE.Vector3(sp.x-1,sp.y-1.6,sp.z-7),new THREE.Vector3(TX-2,TY+2.6,TZ-17),new THREE.Vector3(TX-3,1.5,TZ-30),new THREE.Vector3(TX-4,0.9,TZ-42));
+pts.push(new THREE.Vector3(sp.x-0.4,sp.y-1.6,sp.z-7),new THREE.Vector3(sp.x-1.2,TY+2.6,TZ-17),new THREE.Vector3(sp.x-2,1.5,TZ-30),new THREE.Vector3(sp.x-2.8,0.9,TZ-42));
 const curve=new THREE.CatmullRomCurve3(pts,false,'centripetal');
-const N=420,LEN=curve.getLength();
+const N=900,LEN=curve.getLength();
 const frames=[];for(let i=0;i<=N;i++){const s=i/N,p=curve.getPointAt(s),t=curve.getTangentAt(s);const side=new THREE.Vector3().crossVectors(t,new THREE.Vector3(0,1,0)).normalize();const up=new THREE.Vector3().crossVectors(side,t).normalize();frames.push({p,t,side,up});}
 
 // ---------- U-shaped channel geometry ----------
@@ -33,21 +34,37 @@ const flowTex=canvasTex(64,256,(g,w,h)=>{g.clearRect(0,0,w,h);for(let k=0;k<70;k
 flowTex.wrapS=flowTex.wrapT=THREE.RepeatWrapping;
 const film=new THREE.Mesh(channel(0.55,8,(i,j,c)=>c.set('#9fe0ff'),0.03),new THREE.MeshStandardMaterial({vertexColors:true,map:flowTex,transparent:true,opacity:0.55,roughness:0.05,depthWrite:false}));
 film.geometry.attributes.uv.array.forEach((v,k,a)=>{});scene.add(film);
-// supports
-{const m=std('#e8e3d8',0.6);for(let i=12;i<N-40;i+=26){const f=frames[i];const gy=H(f.p.x,f.p.z);const h=f.p.y-0.65-Math.max(gy,lvl()-0.5);if(h<0.5)continue;const c=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,h,10),m);c.position.set(f.p.x,f.p.y-0.65-h/2,f.p.z);c.castShadow=true;scene.add(c);}}
-// tower with platform, ladder and flag
-{const g=new THREE.Group(),wood=std('#c9a06a',0.7),white=std('#f4f1ea',0.5),red=std('#e2574c',0.6);
-  for(const [x,z] of [[-1.4,-1.4],[1.4,-1.4],[-1.4,1.4],[1.4,1.4]]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,12.6,10),white);p.position.set(x,6.3,z);g.add(p);}
-  for(let y=3;y<12;y+=3){const b=new THREE.Mesh(new THREE.BoxGeometry(3,0.12,3),wood);b.position.y=y;g.add(b);}
-  const top=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.2,3.4),wood);top.position.y=12;g.add(top);
-  for(const [x,z,w,d] of [[0,1.7,3.4,0.08],[-1.7,0,0.08,3.4],[1.7,0,0.08,3.4]]){const r=new THREE.Mesh(new THREE.BoxGeometry(w,1,d),red);r.position.set(x,12.6,z);g.add(r);}
-  const roof=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.4,4),red);roof.position.y=14.6;roof.rotation.y=Math.PI/4;g.add(roof);
-  for(const [x,z] of [[-1.4,-1.4],[1.4,-1.4],[-1.4,1.4],[1.4,1.4]]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.9,8),white);p.position.set(x,13.0+0.0,z);g.add(p);}
-  for(let y=0.4;y<12;y+=0.4){const rung=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.05,0.08),wood);rung.position.set(0,y,1.62);g.add(rung);}
-  for(const x of [-0.45,0.45]){const s=new THREE.Mesh(new THREE.BoxGeometry(0.07,12,0.09),wood);s.position.set(x,6,1.62);g.add(s);}
-  const flag=new THREE.Mesh(new THREE.PlaneGeometry(1,0.6),new THREE.MeshStandardMaterial({color:'#2e86de',side:THREE.DoubleSide}));flag.position.set(0.5,16.1,0);g.add(flag);g.userData.flag=flag;
-  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.6,6),white);pole.position.set(0,15.6,0);g.add(pole);
-  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});g.position.set(TX,TY,TZ);scene.add(g);var tower=g;}
+// supports: radial steel arms to the tower along the spiral, then legs down to the sand / sea bed
+{const m=std('#e8e3d8',0.45,{metalness:0.4}),up=new THREE.Vector3(0,1,0);
+  const strut=(a,b,r)=>{const d=b.clone().sub(a),c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),m);c.position.copy(a).add(b).multiplyScalar(0.5);c.quaternion.setFromUnitVectors(up,d.normalize());c.castShadow=true;scene.add(c);};
+  const spEnd=Math.floor(N*(curve.getLengths(400)[Math.min(400,Math.round(400*(SPN0+2)/(pts.length-1)))]/LEN));
+  for(let i=8;i<N-40;i+=i<spEnd?18:30){const f=frames[i];const a=f.p.clone().addScaledVector(f.up,-0.62);
+    if(i<spEnd){const dir=new THREE.Vector3(TX-a.x,0,TZ-a.z).normalize();strut(a,new THREE.Vector3(TX,a.y-0.6,TZ).addScaledVector(dir,-1.6),0.07);}
+    else{const gy=Math.max(H(f.p.x,f.p.z),-6);const h=a.y-gy;if(h<0.5)continue;strut(a,new THREE.Vector3(a.x,gy-0.3,a.z),0.13);}}}
+// tower: a white steel lattice with cross-bracing, a spiral staircase, top deck, canopy and flag
+{const g=new THREE.Group(),steel=std('#f2f0ea',0.4,{metalness:0.45}),wood=std('#b98e5c',0.7),red=std('#e2574c',0.55),up=new THREE.Vector3(0,1,0);
+  const bar=(a,b,r,mat)=>{const d=b.clone().sub(a),c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),mat);c.position.copy(a).add(b).multiplyScalar(0.5);c.quaternion.setFromUnitVectors(up,d.normalize());g.add(c);};
+  const C=[[-1.6,-1.6],[1.6,-1.6],[1.6,1.6],[-1.6,1.6]];
+  for(const [x,z] of C)bar(new THREE.Vector3(x,-0.5,z),new THREE.Vector3(x,HT-0.1,z),0.16,steel);
+  for(let y=0;y<HT-1;y+=4){const y2=Math.min(HT,y+4);for(let k=0;k<4;k++){const [x1,z1]=C[k],[x2,z2]=C[(k+1)%4];
+      bar(new THREE.Vector3(x1,y+0.2,z1),new THREE.Vector3(x2,y2,z2),0.05,steel);bar(new THREE.Vector3(x2,y+0.2,z2),new THREE.Vector3(x1,y2,z1),0.05,steel);
+      bar(new THREE.Vector3(x1,y2,z1),new THREE.Vector3(x2,y2,z2),0.07,steel);}}
+  // spiral staircase around a central column
+  bar(new THREE.Vector3(0,-0.5,0),new THREE.Vector3(0,HT-0.15,0),0.22,steel);
+  const NS=Math.floor(HT/0.2),stepG=new THREE.BoxGeometry(1.15,0.06,0.42).translate(0.75,0,0),steps=new THREE.InstancedMesh(stepG,wood,NS),mm=new THREE.Matrix4();
+  for(let i=0;i<NS;i++){mm.makeRotationY(i*0.38).setPosition(0,i*0.2+0.2,0);steps.setMatrixAt(i,mm);}steps.castShadow=true;g.add(steps);
+  const rail=[];for(let i=0;i<=NS;i+=2){const a=i*0.38;rail.push(new THREE.Vector3(Math.cos(a)*1.35,i*0.2+1.1,-Math.sin(a)*1.35));}
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rail),NS*2,0.03,6),red));
+  // top deck with railings, canopy and flag
+  const top=new THREE.Mesh(new THREE.BoxGeometry(4.0,0.22,4.0),wood);top.position.y=HT;g.add(top);
+  const ent=[Math.cos(A0-1.0),Math.sin(A0-1.0)];
+  for(const [x,z,w,d] of [[0,2.0,4.0,0.06],[-2.0,0,0.06,4.0],[2.0,0,0.06,4.0],[0,-2.0,4.0,0.06]]){if((x*ent[0]+z*ent[1])/2>-0.2)continue;const r=new THREE.Mesh(new THREE.BoxGeometry(w,0.06,d),red);r.position.set(x,HT+1.1,z);g.add(r);const r2=r.clone();r2.position.y=HT+0.6;g.add(r2);}
+  for(const [x,z] of C){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,2.6,8),steel);p.position.set(x*1.2,HT+1.3,z*1.2);g.add(p);}
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(3.4,1.6,4),red);roof.position.y=HT+3.4;roof.rotation.y=Math.PI/4;g.add(roof);
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.6,0.9),new THREE.MeshStandardMaterial({color:'#2e86de',side:THREE.DoubleSide}));flag.position.set(0.8,HT+5.3,0);g.add(flag);g.userData.flag=flag;
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.4,6),steel);pole.position.set(0,HT+4.9,0);g.add(pole);
+  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});g.position.set(TX,TY,TZ);
+  scene.add(g);var tower=g;}
 // splash particles
 const SPN=260,spPos=new Float32Array(SPN*3).fill(-999),spVel=new Float32Array(SPN*3),spLife=new Float32Array(SPN);let spI=0;
 const spGeo=new THREE.BufferGeometry();spGeo.setAttribute('position',new THREE.BufferAttribute(spPos,3));
@@ -64,7 +81,7 @@ function bell(){if(!AC)return;[880,1175,1568].forEach((f,i)=>{const t=AC.current
 // ---------- the ride ----------
 const R={st:'off',t:0,s:0,v:0,fly:null,count:0,best:0,wy:0,wp:0};
 function startSlide(){if(R.st!=='off'){return;}goto(TX,TZ+0.5,Math.PI);R.st='top';R.t=0;R.s=0;R.v=0;R.wy=walker.yaw;R.wp=walker.pitch;setBtn(true);
-  toast('🛝 Tu es en haut de la tour, 12 mètres au-dessus du sable… Prêt ? 3… 2… 1…',3200);}
+  toast('🛝 Tu es tout en haut de la tour, 35 mètres au-dessus du sable… Prêt ? 3… 2… 1…',3200);}
 function cancel(){if(R.st==='slide'||R.st==='top'){R.st='off';setBtn(false);goto(TX+3,TZ+4,Math.PI);}}
 addEventListener('keydown',e=>{if(e.code==='KeyG'&&state.started&&!e.repeat)startSlide();});
 const grid=document.querySelector('#act .grid');let btn=null;
@@ -85,7 +102,7 @@ hooks.push((dt,time)=>{
     if(R.t>3.1){R.st='slide';bell();}}
   else if(R.st==='slide'){
     const i=Math.min(N-1,Math.floor(R.s*N)),f=frames[i],drop=frames[0].p.y-f.p.y;
-    R.v=Math.max(R.v,Math.sqrt(2*9.8*Math.max(0,drop))*0.78+2.2);R.s+=R.v*dt/LEN;speed=R.v;
+    R.v=Math.max(R.v,Math.sqrt(2*9.8*Math.max(0,drop))*0.6+2.2);R.s+=R.v*dt/LEN;speed=R.v;
     const f2=frames[Math.min(N,i+6)];_t.copy(f2.t).sub(f.t);const bank=clamp(_t.dot(f.side)*-4,-0.3,0.3);
     camera.position.copy(f.p).addScaledVector(f.up,0.95);
     camera.rotation.set(Math.asin(clamp(f.t.y,-1,1))*0.85-0.08,Math.atan2(-f.t.x,-f.t.z),bank,'YXZ');
